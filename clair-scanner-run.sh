@@ -1,0 +1,8 @@
+#!/bin/bash
+REPORT_FILE=$1
+CLAIR_SERVER=$2
+LOCALHOST=$3
+IMAGE=$4
+rm -f clair.json
+echo "clair-scanner $REPORT_FILE  $CLAIR_SERVER $LOCALHOST $IMAGE"
+clair-scanner $REPORT_FILE $CLAIR_SERVER $LOCALHOST $IMAGE

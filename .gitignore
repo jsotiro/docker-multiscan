@@ -1,3 +1,11 @@
+output/
+test-data/
+anchore-reports/
+.idea/
+
+*.json
+*.iml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

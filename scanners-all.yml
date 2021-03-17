@@ -1,0 +1,129 @@
+columns:
+    - vulnerability
+    - severity
+    - description
+    - link
+    - component
+    - version
+    - fixedInVersion
+    - cssv_v2_severity
+    - cssv_v3_severity
+severities:
+  - CRITICAL
+  - HIGH
+  - MEDIUM
+  - LOW
+severity-mappings:
+  NEGLIGIBLE: LOW
+  INFORMATIONAL: LOW
+  LOW: LOW
+  MEDIUM: MEDIUM
+  HIGH: HIGH
+  CRITICAL: CRITICAL
+plugins:
+  snyk:
+    command_line:
+      - ./snyk-scanner.sh
+      - a5e1d3d2-1821-4dcf-865a-c1c974b9e5e8
+    results_root:
+      vulnerabilities
+    mappings:
+      packageName: component
+      identifiers.CVE: vulnerability
+      nearestFixedInVersion: fixedInVersion
+      references.url: link
+    unpack_json:
+      - references
+  aws-ecr:
+    output_file:
+      "\"ecr.json\""
+    command_line:
+      - ./ecr-push-scanner.sh
+      - "272208797173"
+      - eu-west-1
+    results_root:
+      findings
+    mappings:
+      package_name: component
+      package_version: version
+      name: vulnerability
+      uri: link
+    flatten_key_value_pairs:
+      below: attributes
+      key_name: key
+      value_name: value
+  clair-scanner:
+    output_file:
+      "\"clair.json\""
+    command_line:
+      - ./clair-scanner-run.sh
+      - --report=clair.json
+      - --clair=http://192.168.0.80:6060
+      - --ip=192.168.0.80
+    results_root:
+      vulnerabilities
+    mappings:
+      featurename: component
+      featureversion: version
+      fixedby: fixedInVersion
+  anchore-inline:
+    output_file:
+      "\"anchore-reports/{}_{}-vuln.json\".format(image_name,image_tag)"
+    command_line:
+      - ./anchore-inline.sh
+    results_root:
+      vulnerabilities
+    mappings:
+      vuln: vulnerability
+      package: component
+      package_version: version
+      fix: fixedInVersion
+      nvd_data: description
+      url: link
+  grype:
+    command_line:
+      - grype
+      - --output
+      - json
+    results_root:
+      matches
+    mappings:
+      vulnerability.id: vulnerability
+      vulnerability.severity: severity
+      artifact.name: component
+      artifact.version: version
+      vulnerability.fixedInVersion: fixedInVersion
+      vulnerability.description: description
+      vulnerability.links: link
+  grype-all-layers:
+    command_line:
+      - grype
+      - --output
+      - json
+      - --scope=AllLayers
+    results_root:
+      matches
+    mappings:
+      vulnerability.id: vulnerability
+      vulnerability.severity: severity
+      artifact.name: component
+      artifact.version: version
+      vulnerability.fixedInVersion: fixedInVersion
+      vulnerability.description: description
+      vulnerability.links: link
+  trivy:
+    command_line:
+      - trivy
+      - -f
+      - json
+      - -q
+    results_root:
+      Vulnerabilities
+    mappings:
+      VulnerabilityID: vulnerability
+      Severity: severity
+      PkgName: component
+      InstalledVersion: version
+      FixedVersion: fixedInVersion
+      Description:  description
+      PrimaryURL: link
