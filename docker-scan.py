@@ -10,6 +10,11 @@ from pandas.api.types import is_numeric_dtype
 from scanner_plugin import ScannerPlugin
 
 
+log_format = '%(asctime)s.%(msecs)03d %(levelname)s] %(message)s'
+logging.basicConfig(format=log_format, datefmt='%Y-%m-%d,%H:%M:%S', level=logging.DEBUG)
+
+
+
 def config(yaml_filename):
     scanner_config = None
     with open(yaml_filename) as file:

@@ -7,8 +7,6 @@ import pandas as pd
 import requests
 from nvd_cache import NvdCache
 import logging
-import utils
-
 
 def safe_get_key(dict, key):
     if key in dict:
@@ -59,6 +57,7 @@ class ScannerPlugin:
             if not self.failed:
                 json_file = open(self.output_file, )
                 json_result = json.load(json_file)
+                os.remove(self.output_file)
             else:
                 json_result = {"error": "waiting for results file timed-out"}
         else:

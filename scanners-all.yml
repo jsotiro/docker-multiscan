@@ -24,7 +24,6 @@ plugins:
   snyk:
     command_line:
       - ./snyk-scanner.sh
-      - a5e1d3d2-1821-4dcf-865a-c1c974b9e5e8
     results_root:
       vulnerabilities
     mappings:
