@@ -8,18 +8,19 @@ columns:
     - fixedInVersion
     - cssv_v2_severity
     - cssv_v3_severity
+
 severities:
-  - CRITICAL
-  - HIGH
-  - MEDIUM
-  - LOW
+  - 4.CRITICAL
+  - 3.HIGH
+  - 2.MEDIUM
+  - 1.LOW
 severity-mappings:
-  NEGLIGIBLE: LOW
-  INFORMATIONAL: LOW
-  LOW: LOW
-  MEDIUM: MEDIUM
-  HIGH: HIGH
-  CRITICAL: CRITICAL
+  NEGLIGIBLE: 1.LOW
+  INFORMATIONAL: 1.LOW
+  LOW: 1.LOW
+  MEDIUM: 2.MEDIUM
+  HIGH: 3.HIGH
+  CRITICAL: 4.CRITICAL
 plugins:
   snyk:
     command_line:
@@ -59,7 +60,7 @@ plugins:
       - --report=clair.json
       - --clair=http://192.168.0.80:6060
       - --ip=192.168.0.80
-    results_root:
+    results_root:insta
       vulnerabilities
     mappings:
       featurename: component
@@ -84,22 +85,6 @@ plugins:
       - grype
       - --output
       - json
-    results_root:
-      matches
-    mappings:
-      vulnerability.id: vulnerability
-      vulnerability.severity: severity
-      artifact.name: component
-      artifact.version: version
-      vulnerability.fixedInVersion: fixedInVersion
-      vulnerability.description: description
-      vulnerability.links: link
-  grype-all-layers:
-    command_line:
-      - grype
-      - --output
-      - json
-      - --scope=AllLayers
     results_root:
       matches
     mappings:

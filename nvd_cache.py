@@ -17,6 +17,7 @@ class NvdCache:
             __instance = NvdCache()
         return NvdCache.__instance
 
+
     def __init__(self):
         self.dbname = 'nvd-cache.db'
         self.engine = create_engine('sqlite:///' + self.dbname, echo=False)
@@ -61,7 +62,7 @@ class NvdCache:
             logging.error(e)
         return json_response
 
-    def get_item(self, cve):
+    def get_item(self, cve, offline=False):
         found = False
         expired = False
         result = ""
@@ -73,7 +74,7 @@ class NvdCache:
             else:
                 result = json.loads(item['details'])
 
-        if not found or expired:
+        if (not found or expired) and not offline :
             result = self.get_item_from_nvd(cve)
             self.add_item(cve, json.dumps(result))
         return result

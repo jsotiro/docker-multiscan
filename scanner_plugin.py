@@ -8,6 +8,7 @@ import requests
 from nvd_cache import NvdCache
 import logging
 
+
 def safe_get_key(dict, key):
     if key in dict:
         return dict[key]
@@ -19,7 +20,7 @@ cves_dict = {}
 
 
 class ScannerPlugin:
-    def __init__(self, plugin, plugin_config, columns, severity_mappings, verbose=False):
+    def __init__(self, plugin, plugin_config, columns, severity_mappings, verbose=False, offline=False):
         self.name = plugin
         self.config = plugin_config
         self.command_line = plugin_config['command_line']
@@ -31,17 +32,22 @@ class ScannerPlugin:
         self.columns = columns
         self.cve_cache = NvdCache()
         self.timeout_in_secs = 60
+        self.timeout_in_secs = 60
         self.started = None
         self.finished = None
         self.failed = False
         self.verbose = verbose
+        self.offline = offline
+
+    def scan_time(self):
+        scan_time = (self.finished - self.started).total_seconds()
+        return scan_time
 
     def scan_image(self, command_line_params):
         # nvm_path = os.getenv("NVM_BIN")
         scanner = subprocess.Popen(command_line_params, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.started = datetime.datetime.now()
         stdout, stderr = scanner.communicate()
-        self.finished = datetime.datetime.now()
         stdout = stdout.decode('utf-8')
         stderr = stderr.decode('utf-8')
         if self.verbose:
@@ -65,7 +71,7 @@ class ScannerPlugin:
                 json_result = {"error": stderr}
             else:
                 json_result = json.loads(stdout)
-
+        self.finished = datetime.datetime.now()
         return json_result
 
     def flatten_list_to_first_item(self, item):
@@ -78,7 +84,7 @@ class ScannerPlugin:
             return item
 
     def cve_from_reference(self, vuld_id, url):
-        cve = ""
+        cve = vuld_id
         try:
             html = requests.get(url).content
             result = re.search("CVE-\d{4}-\d*", str(html), flags=re.IGNORECASE)
@@ -94,7 +100,7 @@ class ScannerPlugin:
         cssv_v2 = ""
         cssv_v3 = ""
         try:
-            cve_details = self.cve_cache.get_item(cve)
+            cve_details = self.cve_cache.get_item(cve, offline=self.offline)
             cssv_v2 = cve_details["result"]["CVE_Items"][0]["impact"]["baseMetricV2"]["severity"]
             cssv_v3 = cve_details["result"]["CVE_Items"][0]["impact"]["baseMetricV3"]["cvssV3"]["baseSeverity"]
         except Exception as ex:
@@ -109,7 +115,7 @@ class ScannerPlugin:
             item['cve'] = self.cve_from_reference(item.vulnerability, item.link)
         cssv_v2 = ""
         cssv_v3 = ""
-        if str(item['cve']).startswith("cve"):
+        if str(item['cve']).lower().startswith("cve"):
             cssv_v2, cssv_v3 = self.cvss_severities(item['cve'])
         item['cssv_v2_severity'] = cssv_v2
         item['cssv_v3_severity'] = cssv_v3
