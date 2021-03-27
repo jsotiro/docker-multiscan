@@ -11,8 +11,6 @@ from pandas.api.types import is_numeric_dtype
 from scanner_plugin import ScannerPlugin
 import xlsxwriter.utility as xlsutil
 
-
-
 log_format = '%(asctime)s.%(msecs)03d %(levelname)s] %(message)s'
 logging.basicConfig(format=log_format, datefmt='%Y-%m-%d,%H:%M:%S', level=logging.DEBUG)
 
@@ -30,7 +28,7 @@ columns = config['columns']
 severities = config['severities']
 severities_summaries = severities.copy()
 severities_summaries.append(not_found_string)
-severity_indices = {k: v+1 for v, k in enumerate(reversed(severities))}
+severity_indices = {k: v + 1 for v, k in enumerate(reversed(severities))}
 severity_reverse_idx = dict([(value, key) for key, value in severity_indices.items()])
 
 severity_mappings = config['severity-mappings']
@@ -49,10 +47,10 @@ def calculate_composite_severity_rate(data_row):
     result = ""
     severity_rates = []
     for item in data_row:
-        if type(item) !=str:
+        if type(item) != str:
             severity_rates.append(item)
     severity_rates.sort(reverse=True)
-    result = result.join(map(str,severity_rates))
+    result = result.join(map(str, severity_rates))
     return int(result)
 
 
@@ -104,7 +102,31 @@ def slugify(value, allow_unicode=False):
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
-def write_sheet(writer, df, prefix, name, header_format, format_values, format_styles):
+def get_valid_value(series):
+    result = ""
+    for value in series:
+        if pd.isnull(value) or value == "":
+            continue
+        else:
+            result = value
+            break
+    return result
+
+
+def cve_link(cve, df):
+    url = ""
+    hint = ""
+    try:
+        url = df[df.cve == '{}'.format(cve)].link.iloc[0]
+        description = get_valid_value(df[df.cve == '{}'.format(cve)].description)
+        components = sorted(set(df[df.cve == '{}'.format(cve)].component.to_list()))
+        hint = " ".join(components) + "\n"+description
+    except Exception as ex:
+        logging.error(cve + str(ex))
+    return url, hint
+
+
+def write_sheet(writer, ref_data, df, prefix, name, header_format, format_values, format_styles):
     worksheet_name = '{}{}'.format(prefix, name)
     df.to_excel(writer, sheet_name=worksheet_name, index=False)
     # Get the dimensions of the dataframe
@@ -141,36 +163,46 @@ def write_sheet(writer, df, prefix, name, header_format, format_values, format_s
             scan_chart = writer.book.add_chart({'type': 'bar'})
             vuln_chart = writer.book.add_chart({'type': 'column'})
             # Add a series to the chart.
-            for row in range(1,max_row+1):
-
+            for row in range(1, max_row + 1):
                 scan_chart.add_series({
-                                'name': [worksheet_name,row,0,row,0],
-                                'values': [worksheet_name,row,1,row,1] } )
+                    'name': [worksheet_name, row, 0, row, 0],
+                    'values': [worksheet_name, row, 1, row, 1]})
 
             scan_chart.set_x_axis({'name': 'seconds'})
             scan_chart.set_title({'name': 'Scan Time'})
             scan_chart.width = 700
 
-            for col in range(5,max_col):
+            for col in range(5, max_col):
                 vuln_chart.add_series({
-                    'categories': [worksheet_name,1,0,max_row,0],
-                     'name': [worksheet_name,0,col,0,col],
-                     'fill' : {'color':severity_colors[col-5]},
-                     'values': [worksheet_name,1,col,max_row,col] } )
+                    'categories': [worksheet_name, 1, 0, max_row, 0],
+                    'name': [worksheet_name, 0, col, 0, col],
+                    'fill': {'color': severity_colors[col - 5]},
+                    'values': [worksheet_name, 1, col, max_row, col]})
             vuln_chart.set_title({'name': 'Vulnerabilities'})
             vuln_chart.width = 700
             # Insert the chart into the worksheet.
-            cell = xlsutil.xl_rowcol_to_cell(max_row+1,0)
+            cell = xlsutil.xl_rowcol_to_cell(max_row + 1, 0)
             worksheet.insert_chart(cell, vuln_chart)
-            cell = xlsutil.xl_rowcol_to_cell(22,0)
+            cell = xlsutil.xl_rowcol_to_cell(22, 0)
             worksheet.insert_chart(cell, scan_chart)
+        elif name == 'vulnerability heatmap':
+            for row in range(1, max_row + 1):
+                cve = df['cve'].iloc[row - 1]
+                url, hint = cve_link(cve, ref_data)
+                worksheet.write_url(row, 0, url, string=cve, tip=hint)
 
-severity_colors  = [ "#b85c00", "#ff420e", "#ffd428", "#579d1c",'#999999']
+
+severity_colors = ["#b85c00", "#ff420e", "#ffd428", "#579d1c", '#999999']
+
 
 def save_to_excel(image_name, totals, normalised, original):
     name = slugify(image_name)
     created = datetime.now().strftime("%Y-%m-%d.%H%M%S")
     severities_format = []
+    all_data = pd.DataFrame()
+    for plugin in config['plugins']:
+        all_data = all_data.append(normalised[plugin])
+
     with pd.ExcelWriter('output/{}-{}.xlsx'.format(name, created), engine='xlsxwriter') as writer:
         bold_format = writer.book.add_format({'bold': True})
         critital_format = writer.book.add_format({'bg_color': '#b85c00',
@@ -186,7 +218,7 @@ def save_to_excel(image_name, totals, normalised, original):
                                              'font_color': '#1c1c1c'})
         severities_format.append(low_format)
         unknown_format = writer.book.add_format({'bg_color': '#999999',
-                                             'font_color': '#1c1c1c'})
+                                                 'font_color': '#1c1c1c'})
         severities_format.append(unknown_format)
 
         notfound_format = writer.book.add_format({'bg_color': '#dee6ef',
@@ -196,14 +228,14 @@ def save_to_excel(image_name, totals, normalised, original):
                                                   'font_size': 9})
         severities_format.append(notfound_format)
         for key in totals:
-            write_sheet(writer, totals[key], "", key, bold_format, severities_summaries, severities_format)
+            write_sheet(writer, all_data, totals[key], "", key, bold_format, severities_summaries, severities_format)
         for key in normalised:
             if not normalised[key].empty:
-                write_sheet(writer, normalised[key], "normalised-", key, bold_format, severities_summaries,
+                write_sheet(writer, all_data, normalised[key], "normalised-", key, bold_format, severities_summaries,
                             severities_format)
         for key in original:
             if not original[key].empty:
-                write_sheet(writer, original[key], "original-", key, bold_format, severities_summaries,
+                write_sheet(writer, None, original[key], "original-", key, bold_format, severities_summaries,
                             severities_format)
 
 
@@ -238,7 +270,8 @@ def scan(args):
 
     for plugin in config['plugins']:
         logging.info('scanning with {}'.format(plugin))
-        scanner = ScannerPlugin(plugin, config['plugins'][plugin], columns, severity_mappings, verbose=verbose, offline=offline)
+        scanner = ScannerPlugin(plugin, config['plugins'][plugin], columns, severity_mappings, verbose=verbose,
+                                offline=offline)
         results[plugin], originals[plugin] = scanner.scan(image)
         logging.info('summary for {} scan by {}'.format(image, plugin))
         scan_time = scanner.scan_time()
@@ -268,11 +301,11 @@ def scan(args):
             # severity_map['description'] = results[plugin]['description']
             severity_map['severity_index'] = severity_map.severity.map(severity_indices)
 
-#            severity_map_df = aggregate_dataframe(
-#               severity_map.groupby(['cve']).severity_index.max().map(severity_reverse_idx), 'cve')
+            #            severity_map_df = aggregate_dataframe(
+            #               severity_map.groupby(['cve']).severity_index.max().map(severity_reverse_idx), 'cve')
 
             severity_map_df = aggregate_dataframe(
-                 severity_map.groupby(['cve']).severity_index.max(), 'cve')
+                severity_map.groupby(['cve']).severity_index.max(), 'cve')
 
             severity_maps[plugin] = severity_map_df
 
@@ -305,18 +338,20 @@ def scan(args):
     save_to_excel(image, all, results, originals)
 
 
-def format_severities_map(df):
-    #df.loc[:,'severity index']=df.sum(numeric_only=True, axis=1)
-    df['severity index'] = 0
-    df['severity index'] = df.apply(calculate_composite_severity_rate,axis=1)
-    map_name= df.columns[0]
-    df.sort_values(by=['severity index',map_name], inplace=True, ascending=False)
-    map_dict = severity_reverse_idx.copy()
-    map_dict[0]=not_found_string
-    for scanner in df.columns[1:-1]:
-        df[scanner]= df[scanner].map(map_dict)
-    return df
+## if col is vulnerability or cve
+##
 
+def format_severities_map(df):
+    # df.loc[:,'severity index']=df.sum(numeric_only=True, axis=1)
+    df['severity index'] = 0
+    df['severity index'] = df.apply(calculate_composite_severity_rate, axis=1)
+    map_name = df.columns[0]
+    df.sort_values(by=['severity index', map_name], inplace=True, ascending=False)
+    map_dict = severity_reverse_idx.copy()
+    map_dict[0] = not_found_string
+    for scanner in df.columns[1:-1]:
+        df[scanner] = df[scanner].map(map_dict)
+    return df
 
 
 if __name__ == "__main__":
