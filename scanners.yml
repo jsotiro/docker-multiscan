@@ -10,19 +10,25 @@ columns:
     - cssv_v3_severity
 
 severities:
-  - 4.CRITICAL
-  - 3.HIGH
-  - 2.MEDIUM
-  - 1.LOW
+  - 5.CRITICAL
+  - 4.HIGH
+  - 3.MEDIUM
+  - 2.LOW
+  - 1.UNKNOWN
 severity-mappings:
-  NEGLIGIBLE: 1.LOW
-  INFORMATIONAL: 1.LOW
-  LOW: 1.LOW
-  MEDIUM: 2.MEDIUM
-  HIGH: 3.HIGH
-  CRITICAL: 4.CRITICAL
+  UNDEFINED: 1.UNKNOWN
+  UNKNOWN: 1.UNKNOWN
+  NEGLIGIBLE: 2.LOW
+  INFORMATIONAL: 2.LOW
+  LOW: 2.LOW
+  MEDIUM: 3.MEDIUM
+  HIGH: 4.HIGH
+  CRITICAL: 5.CRITICAL
+
 plugins:
   snyk:
+    enabled:
+      False
     command_line:
       - ./snyk-scanner.sh
     results_root:
@@ -60,7 +66,7 @@ plugins:
       - --report=clair.json
       - --clair=http://192.168.0.80:6060
       - --ip=192.168.0.80
-    results_root:insta
+    results_root:
       vulnerabilities
     mappings:
       featurename: component

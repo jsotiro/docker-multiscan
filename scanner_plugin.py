@@ -176,7 +176,7 @@ class ScannerPlugin:
         for name in code.co_names:
             if name not in allowed_names:
                 raise NameError(f"Use of {name} not allowed")
-        return eval(code, {"__builtins__": {}}, allowed_names)
+        return eval(code, {"__builtins__"   : {}}, allowed_names)
 
     def transpose_key_value_pairs_to_named_keys(self, json, root, pair_parent, key_name, value_name):
         json_array = json[root]

@@ -165,7 +165,7 @@ def write_sheet(writer, df, prefix, name, header_format, format_values, format_s
             cell = xlsutil.xl_rowcol_to_cell(22,0)
             worksheet.insert_chart(cell, scan_chart)
 
-severity_colors  = [ "#b85c00", "#ff420e", "#ffd428", "#579d1c"]
+severity_colors  = [ "#b85c00", "#ff420e", "#ffd428", "#579d1c",'#999999']
 
 def save_to_excel(image_name, totals, normalised, original):
     name = slugify(image_name)
@@ -185,6 +185,10 @@ def save_to_excel(image_name, totals, normalised, original):
         low_format = writer.book.add_format({'bg_color': '#579d1c',
                                              'font_color': '#1c1c1c'})
         severities_format.append(low_format)
+        unknown_format = writer.book.add_format({'bg_color': '#999999',
+                                             'font_color': '#1c1c1c'})
+        severities_format.append(unknown_format)
+
         notfound_format = writer.book.add_format({'bg_color': '#dee6ef',
                                                   'font_color': '#dee6ef',
                                                   'italic': True,
@@ -223,6 +227,7 @@ def scan(args):
     cve_summary_by_severity = {}
     components_summary_by_severity = {}
     severity_maps = {}
+    descriptions = {}
     cves = pd.DataFrame()
     components = pd.DataFrame()
     cve_totals_by_severity = pd.DataFrame()
@@ -239,7 +244,8 @@ def scan(args):
         scan_time = scanner.scan_time()
         if results[plugin].empty:
             logging.info('No vulnerabilities found!')
-            totals_df.loc[len(totals_df.index)] = [plugin, scan_time, 0, 0, 0, 0, 0, 0, 0]
+            # do the zeros with an iteration of severities
+            totals_df.loc[len(totals_df.index)] = [plugin, scan_time, 0, 0, 0, 0, 0, 0, 0, 0]
         else:
             # snyk seems to have a lot of duplicate rows in json results
             results[plugin].drop_duplicates(inplace=True)
@@ -259,7 +265,7 @@ def scan(args):
             severity_map['cve'] = results[plugin]['cve']
             severity_map['component'] = results[plugin]['component']
             severity_map['severity'] = results[plugin]['severity']
-            severity_map['description'] = results[plugin]['description']
+            # severity_map['description'] = results[plugin]['description']
             severity_map['severity_index'] = severity_map.severity.map(severity_indices)
 
 #            severity_map_df = aggregate_dataframe(
@@ -310,6 +316,7 @@ def format_severities_map(df):
     for scanner in df.columns[1:-1]:
         df[scanner]= df[scanner].map(map_dict)
     return df
+
 
 
 if __name__ == "__main__":
