@@ -189,7 +189,7 @@ def write_sheet(writer, ref_data, df, prefix, name, header_format, format_values
             for row in range(1, max_row + 1):
                 cve = df['cve'].iloc[row - 1]
                 url, hint = cve_link(cve, ref_data)
-                worksheet.write_url(row, 0, url, string=cve, tip=hint)
+                worksheet.write_url(row, 0, str(url), string=cve, tip=hint)
 
 
 severity_colors = ["#b85c00", "#ff420e", "#ffd428", "#579d1c", '#999999']

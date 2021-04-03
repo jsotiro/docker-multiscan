@@ -1,0 +1,12 @@
+dmscan -i alpine
+dmscan -i debian
+dmscan -i ubuntu
+dmscan -i dotnet/runtime
+dmscan -i openjdk
+dmscan -i python
+dmscan -i node
+dmscan -i php
+dmscan -i ruby
+dmscan -i bkimminich/juice-shop
+dmscan -i owasp/benchmark
+dmscan -i jsotiro/cve-2020-9402
