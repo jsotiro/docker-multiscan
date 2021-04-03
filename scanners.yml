@@ -64,8 +64,8 @@ plugins:
     command_line:
       - ./clair-scanner-run.sh
       - --report=clair.json
-      - --clair=http://192.168.0.80:6060
-      - --ip=192.168.0.80
+      - --clair=http://127.0.0.1:6060
+      - --ip=localhost
     results_root:
       vulnerabilities
     mappings:
