@@ -1,8 +1,9 @@
-#!/bin/python
+#!/usr/bin/python
 import logging
 import argparse
 import sys
 import re
+import os
 from _datetime import datetime
 
 import pandas as pd
@@ -267,7 +268,8 @@ def scan(args):
     cols = ['SCANNER', 'scan time', 'vulnerabilities', 'CVEs', 'components']
     cols.extend(severities)
     totals_df = pd.DataFrame(columns=cols)
-
+    if not os.path.exists('output'):
+        os.makedirs('output')
     for plugin in config['plugins']:
         logging.info('scanning with {}'.format(plugin))
         scanner = ScannerPlugin(plugin, config['plugins'][plugin], columns, severity_mappings, verbose=verbose,
