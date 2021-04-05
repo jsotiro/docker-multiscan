@@ -12,9 +12,6 @@ from pandas.api.types import is_numeric_dtype
 from scanner_plugin import ScannerPlugin
 import xlsxwriter.utility as xlsutil
 
-log_format = '%(asctime)s.%(msecs)03d %(levelname)s] %(message)s'
-logging.basicConfig(format=log_format, datefmt='%Y-%m-%d,%H:%M:%S', level=logging.DEBUG)
-
 
 def config(yaml_filename):
     scanner_config = None
@@ -23,8 +20,23 @@ def config(yaml_filename):
     return scanner_config
 
 
-not_found_string = '-'
+levels = {
+    'critical': logging.CRITICAL,
+    'error': logging.ERROR,
+    'warn': logging.WARNING,
+    'warning': logging.WARNING,
+    'info': logging.INFO,
+    'debug': logging.DEBUG
+}
+logging_level = logging.INFO
 config = config('scanners.yml')
+if 'logging' in config:
+    if 'level' in config['logging']:
+        logging_level = levels[str(config['logging']['level']).lower()]
+log_format = '%(asctime)s.%(msecs)03d %(levelname)s] %(message)s'
+logging.basicConfig(format=log_format, datefmt='%Y-%m-%d,%H:%M:%S', level=logging_level)
+
+not_found_string = '-'
 columns = config['columns']
 severities = config['severities']
 severities_summaries = severities.copy()
@@ -191,7 +203,8 @@ def write_sheet(writer, ref_data, df, prefix, name, header_format, format_values
             for row in range(1, max_row + 1):
                 cve = df['cve'].iloc[row - 1]
                 url, hint = cve_link(cve, ref_data)
-                worksheet.write_url(row, 0, str(url), string=cve, tip=hint)
+                cell = xlsutil.xl_rowcol_to_cell(row, 0)
+                worksheet.write_url(cell, str(url), string=cve, tip=hint)
 
 
 severity_colors = ["#b85c00", "#ff420e", "#ffd428", "#579d1c", '#999999']
@@ -392,10 +405,11 @@ def filter_selected(selected):
     for i in selected:
         idx = int(i)
         if idx in active_plugins_idx:
-            result.append(active_plugins[idx-1])
+            result.append(active_plugins[idx - 1])
         else:
             logging.warning("invalid plugin number. it will be ignored".format(i))
     return result
+
 
 if __name__ == "__main__":
     # create parser

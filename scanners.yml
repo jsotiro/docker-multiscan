@@ -1,3 +1,6 @@
+logging:
+  level: debug
+
 columns:
     - vulnerability
     - severity
