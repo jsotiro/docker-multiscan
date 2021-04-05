@@ -24,11 +24,11 @@ severity-mappings:
   MEDIUM: 3.MEDIUM
   HIGH: 4.HIGH
   CRITICAL: 5.CRITICAL
-
+  #DEFCON1: 5.CRITICAL
 plugins:
   snyk:
     enabled:
-      False
+      True
     command_line:
       - ./snyk-scanner.sh
     results_root:

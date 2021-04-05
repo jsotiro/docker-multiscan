@@ -25,18 +25,18 @@ _dmscan_ requires
 5. A snyk account and token, if you are going to include snyk in the scans
 
 ##### It has been used/tested on #### 
-- Ubuntu
+- Ubuntu 18 and 20
 - MacOS
 - EC2 Linux on AWS
 - WSL2 on Windows 10 pro
 
 ## Installing the scanners
-You can manually install 
+You can manually install the scanners or 
 Or use the ./install-scanners.sh to install them in one go:
 - chmod +x install-scanners.sh to  make install-scanners.sh executable
 - ./install-scanners.sh from the command line to install the scanners
 
-Once they are installed 
+Once they are installed, you need to  
 
 ## Installing dmscan
 

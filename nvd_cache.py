@@ -69,6 +69,9 @@ class NvdCache:
         if cve in self.df.index:
             item = self.df.loc[cve]
             found = True
+            # duplicates in the db
+            if len(item.shape) > 1:
+                item = item[item['last_updated'] == item['last_updated'].max()].iloc[0]
             if self.has_expired(item['last_updated']):
                 expired = True
             else:

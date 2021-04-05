@@ -121,9 +121,10 @@ def cve_link(cve, df):
         url = df[df.cve == '{}'.format(cve)].link.iloc[0]
         description = get_valid_value(df[df.cve == '{}'.format(cve)].description)
         components = sorted(set(df[df.cve == '{}'.format(cve)].component.to_list()))
-        hint = " ".join(components) + "\n"+description
+        hint = " ".join(components) + "\n" + description
     except Exception as ex:
         logging.error(cve + str(ex))
+        url = "https://www.google.com/search?q=" + cve
     return url, hint
 
 
@@ -201,7 +202,7 @@ def save_to_excel(image_name, totals, normalised, original):
     created = datetime.now().strftime("%Y-%m-%d.%H%M%S")
     severities_format = []
     all_data = pd.DataFrame()
-    for plugin in config['plugins']:
+    for plugin in selected_plugins:
         all_data = all_data.append(normalised[plugin])
 
     with pd.ExcelWriter('output/{}-{}.xlsx'.format(name, created), engine='xlsxwriter') as writer:
@@ -248,6 +249,23 @@ def aggregate_dataframe(aggregates, column):
     return df
 
 
+active_plugins = []
+active_plugins_idx = []
+selected_plugins = []
+
+
+def get_active_plugins(config):
+    plugins = []
+    plugins_idx = []
+    i = 1
+    for plugin in config:
+        if is_plugin_enabled(config[plugin]):
+            plugins.append(plugin)
+            plugins_idx.append(i)
+        i += 1
+    return plugins, plugins_idx
+
+
 def scan(args):
     image = args.image
     verbose = args.verbose
@@ -270,7 +288,8 @@ def scan(args):
     totals_df = pd.DataFrame(columns=cols)
     if not os.path.exists('output'):
         os.makedirs('output')
-    for plugin in config['plugins']:
+
+    for plugin in selected_plugins:
         logging.info('scanning with {}'.format(plugin))
         scanner = ScannerPlugin(plugin, config['plugins'][plugin], columns, severity_mappings, verbose=verbose,
                                 offline=offline)
@@ -356,6 +375,28 @@ def format_severities_map(df):
     return df
 
 
+def selected_plugins(selected_str):
+    result = []
+    selected_idx = map(int(selected_str))
+
+
+def is_plugin_enabled(param):
+    result = True
+    if 'enabled' in param:
+        result = param['enabled']
+    return result
+
+
+def filter_selected(selected):
+    result = []
+    for i in selected:
+        idx = int(i)
+        if idx in active_plugins_idx:
+            result.append(active_plugins[idx-1])
+        else:
+            logging.warning("invalid plugin number. it will be ignored".format(i))
+    return result
+
 if __name__ == "__main__":
     # create parser
     parser = argparse.ArgumentParser()
@@ -369,7 +410,7 @@ if __name__ == "__main__":
     parser.add_argument("-of", "--offline", action="store_true",
                         help="don't update nvd cache severities scores, lookup and update  if ommited")
     parser.add_argument("-s", "--scanners",
-                        help=" optional. scannners to include in the scan. all (default) or specific id for scanners as found in with the -l command e.g. 3,5  to use 3rd and 5th registerd scanner only in the scan")
+                        help=" optional. scanners to include in the scan. all (default) or specific id for scanners as found in with the -l command e.g. 3,5  to use only 3rd and 5th registered scanner  in the scan")
     # parse the arguments
     args = parser.parse_args()
     if (len(sys.argv) == 1) or ((args.list is None) and (args.image is None)):
@@ -378,14 +419,24 @@ if __name__ == "__main__":
             file=sys.stderr)
         parser.print_help(sys.stderr)
         sys.exit(1)
+
+    active_plugins, active_plugins_idx = get_active_plugins(config['plugins'])
     if args.list:
         i = 1
         print('registered scanners')
         for plugin in config['plugins']:
-            print('{} {} '.format(i, plugin))
+            enabled = is_plugin_enabled(config['plugins'][plugin])
+            print('{} {} - Enabled:{}'.format(i, plugin, enabled))
             i += 1
         sys.exit(0)
     if args.image:
         if ":" not in args.image:
             args.image += ":latest"
+        selected_plugins = active_plugins
+        if args.scanners:
+            selected = args.scanners.split(",")
+            try:
+                selected_plugins = filter_selected(selected)
+            except:
+                logging.warning('invalid scanner options. will be ignored')
         scan(args)

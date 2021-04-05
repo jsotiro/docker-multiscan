@@ -44,7 +44,6 @@ class ScannerPlugin:
         return scan_time
 
     def scan_image(self, command_line_params):
-        # nvm_path = os.getenv("NVM_BIN")
         scanner = subprocess.Popen(command_line_params, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.started = datetime.datetime.now()
         stdout, stderr = scanner.communicate()
@@ -101,15 +100,20 @@ class ScannerPlugin:
         cssv_v3 = ""
         try:
             cve_details = self.cve_cache.get_item(cve, offline=self.offline)
-            cssv_v2 = cve_details["result"]["CVE_Items"][0]["impact"]["baseMetricV2"]["severity"]
-            cssv_v3 = cve_details["result"]["CVE_Items"][0]["impact"]["baseMetricV3"]["cvssV3"]["baseSeverity"]
+            if "result" in  cve_details:
+                if "CVE_Items" in  cve_details["result"]:
+                    if "impact" in  cve_details["result"]["CVE_Items"][0]:
+                        if "baseMetricV2" in cve_details["result"]["CVE_Items"][0]["impact"]:
+                            cssv_v2 = cve_details["result"]["CVE_Items"][0]["impact"]["baseMetricV2"]["severity"]
+                        if "baseMetricV3" in cve_details["result"]["CVE_Items"][0]["impact"]:
+                            cssv_v3 = cve_details["result"]["CVE_Items"][0]["impact"]["baseMetricV3"]["cvssV3"]["baseSeverity"]
         except Exception as ex:
             msg = cve + str(ex)
             logging.error(msg)
         return cssv_v2, cssv_v3
 
     def replace_GSHA_withCVE(self, item):
-        if item.vulnerability.startswith('CVE'):
+        if item.vulnerability.startswith('CVE') or pd.isna(item.link):
             item['cve'] = item.vulnerability
         else:
             item['cve'] = self.cve_from_reference(item.vulnerability, item.link)
