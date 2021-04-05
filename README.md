@@ -4,7 +4,7 @@ A multi-scanner utility for docker images. drives Clair, Anchore, Trivy, Snyk, G
 *dmscan* run the scans for all register scanners and  then consolidates the results and generates an excel spreadsheet report to help you better understand the results. The spreadsheet contains:
 
 - **Summary tables and charts** by scanner and severity with scanning times, and unique vulnerabilities and cve s (see below for what the difference is) 
-![img_1.png](img_1.png)
+![img_1.png](images/img_1.png)
 
 - A **Vulnerability and Component Heatmap** which allows you to see at a glance what has been found and what has been ignored. Vulnerabilities have clickable urls to the security advisarables and you can hover on the url to see the description and packages affected. 
 
@@ -16,7 +16,7 @@ A multi-scanner utility for docker images. drives Clair, Anchore, Trivy, Snyk, G
 
 # Setup #
 
-## prerequisites ##
+## Prerequisites ##
 _dmscan_ requires 
 1. Linux/MacOS shell  
 2. Docker CLI
@@ -36,18 +36,85 @@ Or use the ./install-scanners.sh to install them in one go:
 - chmod +x install-scanners.sh to  make install-scanners.sh executable
 - ./install-scanners.sh from the command line to install the scanners
 
-Once they are installed, you need to  
+Once they are installed, you need to  logon to snyk.io and find your token (under settings) then create an environment variable in your profile file (~/.profile, ~/.zprofile etc) as
+export SNYK_TOKEN=<your snyk token>
 
 ## Installing dmscan
+Clone this repository from github
+
+From the command line and in the projects directory (eg docker-multiscan) run 
+pip install -r requirements.txt  
+or if your system has pip3 the version of pip for python 3
+pip3 install -r requirements.txt
+
+This will install all python packages required
 
 ## Using dmscan
+You can run dmscan using 
 
+python ./dmscan.py
 
-### running a multiscan
-### viewing the results
-### customising dmscan
+or use chmod +x dmscan.py and then run it as 
+./dmscan.py
 
-## known issues
+Because of the dependencies on other included shell scripts, you should only run dmscan under the projects directory.
 
+running it with any parameters it will show the same as screen as if you run it with -h or --help parameter
+
+![img.png](images/img.png)
+
+You can list the registered scanners (in scanners.yml) by running 
+./dmscan.py -l 
+![img_2.png](images/img_2.png)
+
+### Running a multiscan
+To run  a full  multiscan you need to use 
+./dmscan.py -i <image name>
+where image name can include the image tag eg my/image:7.0.1 
+If you don't specify tag latest will be assumed, and the image name will be reported as my/image:latest
+
+dmscan will display statistics and create a spreadsheet report under the output subdirectory (which it will create if it does not exist). The spreadhseet name will contain a timestamp so that you have all the scan results, rather than overwriting them.
+
+Normally dmscan suprsesses the output of each scanner. If you want to see detailed output run it as
+./dmscan.py -i <image name> -v 
+where -v is verbose mode.
+
+dmscan maintains a sql lite database with a cache of all the cve records from NVDs NIST which is used primarily for CSVS ratings. If you  are not interested in these severity ratings, or you are off line you can disable this feature by running dmscan as
+./dmscan.py -i <image name> -of
+
+Sometimes you'd want to run a quick scan for a subset of registered scanners. Instead of modifying the scanners.yml file, you pass the -s or --scanners command line parameter
+This is a comma delimited list of ids for  scanners to include. The numbers can be found when running ./dmscanner.py -l 
+
+For instance if you only wanted to run a scan for snyk, grype, and trivy you'd run
+./dmscan.py -i <image name> -s 1,5,6
+
+Invalid scanner ids will be ignored and a warning will be displayed.
+
+All options except -l and -h can be combined. e.g.
+./dmscan.py -i <image name> -s 1,5,6 -v -of
+
+### Customising dmscan
+scanners.yml is the configuration file driving dmscan and you can customise the following:
+1. **disable a scanner** (e.g. if you don't use AWS ECR). you can do that by entering under the scanner name
+ enabled:
+  False
+You can re-enable a scanner by changing False to True or completely remove the enabled entry.
+2. **change the level of logging** (*debug, info, warn, error, critical*)
+3. **change the severity mappings** of each scanner to a common list
+4. **customize the configuration of a scanner** under plugins. each scanner has its own plugin section
+5. **define a new scanner** 
+
+## Known issues
+1. Currently, when you first open the generated spreadsheet, excel prompts you to repair the workbook. This relates to the generated Urls, and the issue is being investigated. Until a fix is submitted, just say yes  
+![img_3.png](images/img_3.png)
+The repair is done  and a confirmation of the repair is shown
+ ![img_4.png](images/img_4.png)
+Save the repaired workbook.
+2. Error handling needs improvement.
+## Where can I get help?
+Raise and issue in GitHub
+
+## Can I contribute a fix or improvement?
+dmscan belongs to those who use it and want it improved and you can always contribute fixes or improvements using  pull requests.
 
 (c) John Sotiropoulos 2021
