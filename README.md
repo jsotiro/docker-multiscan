@@ -76,9 +76,9 @@ or run it as a script
 ./dmscan.py
 ```
 
-To run it as a script, Mac users should make sure they have /usr/local/bin/python entry by symlinking python3 eg 
+To run it as a script, Mac users should change the first line of dmscan.py (#!/usr/bin/python) to match their python3 install.  
 ```
-ln -s /usr/local/bin/python3  /usr/local/bin/python
+#!/usr/local/bin/python3
 ```
 
 dmscan.py should already have exectuble permissions, but if you get a permission denied error, give it (and the dependendent scripts) execution permissions with 
