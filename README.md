@@ -36,19 +36,24 @@ if you don't want to use AWS or Snyk then skip their pre-reqs and once the dmsca
 - WSL2 on Windows 10 pro
 
 ## Installing the scanners
-You can manually install the scanners or 
-Or **use the ./install-scanners.sh to install them in one go**:
+You can manually install the scanners or clone this repository from github and **use the ./install-scanners.sh to install them in one go**:
 Make the script executable and then run it 
 ```
- chmod +x install-scanners.sh 
  ./install-scanners.sh 
 ```
+
+The script should already have execution permissions. If not, or you receive an permission denied error, give it execution permissions with
+```
+chmod +x install-scanners.sh 
+```
+ 
+
 Once they are installed, you need to  logon to snyk.io and find your token (under settings) then create an environment variable in your profile file (~/.profile, ~/.zprofile etc) as
 ```
 export SNYK_TOKEN=<your snyk token>
 ```
 ## Installing dmscan
-Clone this repository from github and install the python packages required by running from the command line and in the project's directory (eg docker-multiscan) run 
+Install the python packages required by running from the command line and in the project's directory (eg docker-multiscan) run 
 ```
 pip install -r requirements.txt  
 ```
@@ -57,7 +62,7 @@ or if your system uses pip3  as the version of pip for python 3
 ```
 pip3 install -r requirements.txt
 ```
-
+(you can find out if your pip is for Python 2.x or 3.x with pip --version)
 
 
 ## Using dmscan
@@ -66,14 +71,27 @@ You can run dmscan using
 python ./dmscan.py
 ```
 
-or make it executable and run it as a script 
+or run it as a script 
 ```
-chmod +x dmscan.py  
 ./dmscan.py
 ```
+
+To run it as a script, Mac users should make sure they have /usr/local/bin/python entry by symlinking python3 eg 
+```
+ln -s /usr/local/bin/python3  /usr/local/bin/python
+```
+
+dmscan.py should already have exectuble permissions, but if you get a permission denied error, give it (and the dependendent scripts) execution permissions with 
+
+```
+chmod +x *.sh   
+chmod +x dmscan.py   
+```
+
 Because of the dependencies on other included shell scripts, you should only run dmscan under the projects directory.
 
-running it with any parameters it will show the same as screen as if you run it with -h or --help parameter
+
+Running it with any parameters it will show the same as screen as if you run it with -h or --help parameter
 
 ![cli](images/cli-main-s.png)
 
@@ -128,7 +146,10 @@ You can re-enable a scanner by changing False to True or completely remove the e
 5. **define a new scanner** 
 
 ## Known issues
-###1. Currently, when you first open the generated spreadsheet, excel prompts you to repair the workbook. This relates to the generated Urls, and the issue is being investigated. Until a fix is submitted, just say yes  
+1. Currently, when you first open the generated spreadsheet, excel prompts you to repair the workbook. 
+2. Error handling needs improvement.
+
+Issue #1 relates to the generated Urls, and the issue is being investigated. Until a fix is submitted, just say yes  
 
 ![repair prompt](images/xl-repair-prompt-s.png)
 
@@ -138,7 +159,6 @@ The repair is done  and a confirmation of the repair is shown
 
 Save the repaired workbook.
 
-###2. Error handling needs improvement.
 
 ## Where can I get help?
 Raise and issue in GitHub
@@ -146,4 +166,4 @@ Raise and issue in GitHub
 ## Can I contribute a fix or improvement?
 dmscan belongs to those who use it and want it improved and you can always contribute fixes or improvements using  pull requests.
 
-(c) John Sotiropoulos 2021
+(c) John Sotiropoulos 2021. This software is licenced under Apache License 2.0 and is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. The full license notice can be found in the LICENSE file. 
