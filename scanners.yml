@@ -68,7 +68,7 @@ plugins:
       - ./clair-scanner-run.sh
       - --report=clair.json
       - --clair=http://127.0.0.1:6060
-      - --ip=localhost
+      - --ip=host.docker.internal 
     results_root:
       vulnerabilities
     mappings:
