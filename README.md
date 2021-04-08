@@ -76,19 +76,19 @@ or run it as a script
 ./dmscan.py
 ```
 
-To run it as a script, Mac users should change the first line of dmscan.py (#!/usr/bin/python) to match their python3 install.  
+To run it as a script, Linux/WSL2 users should create a symlink to python3 in their /usr/local/bin i.e.
 ```
-#!/usr/local/bin/python3
+sudo ln -s /usr/bin/python3  /usr/local/bin/python3
 ```
 
-dmscan.py should already have exectuble permissions, but if you get a permission denied error, give it (and the dependendent scripts) execution permissions with 
+dmscan.py should already have executable permissions, but if you get a permission denied error, give it (and the dependent scripts) execution permissions with 
 
 ```
 chmod +x *.sh   
 chmod +x dmscan.py   
 ```
 
-Because of the dependencies on other included shell scripts, you should only run dmscan under the projects directory.
+Because of the dependencies on other included shell scripts, you should only run dmscan under the project's directory.
 
 
 Running it with any parameters it will show the same as screen as if you run it with -h or --help parameter
@@ -108,7 +108,9 @@ To run  a full  multiscan you need to use
 where image name can include the image tag eg my/image:7.0.1 
 If you don't specify tag latest will be assumed, and the image name will be reported as my/image:latest
 
-dmscan will display statistics and create a spreadsheet report under the output subdirectory (which it will create if it does not exist). The spreadhseet name will contain a timestamp so that you have all the scan results, rather than overwriting them.
+Please note that the first run, anchore-inline will take a longer time than usual as the script pulls a 6+ GB docker image. 
+
+dmscan will display statistics and create a **spreadsheet report under the output subdirectory** (which it will create if it does not exist). The spreadhseet name will contain a timestamp so that you have all the scan results, rather than overwriting them.
 
 Normally dmscan suprsesses the output of each scanner. If you want to see detailed output run it as
 ```
@@ -148,7 +150,7 @@ You can re-enable a scanner by changing False to True or completely remove the e
 ## Known issues
 1. Currently, when you first open the generated spreadsheet, excel prompts you to repair the workbook. 
 2. Error handling needs improvement.
-
+3. Clair-scanner will fail on a system running PostgreSQL on the default port (5432). Please either stop temporarily your postgres service or reconfigure it to run on a different port. 
 Issue #1 relates to the generated Urls, and the issue is being investigated. Until a fix is submitted, just say yes  
 
 ![repair prompt](images/xl-repair-prompt-s.png)
@@ -159,11 +161,12 @@ The repair is done  and a confirmation of the repair is shown
 
 Save the repaired workbook.
 
+For issue #2, if you see 0 results from a scanner run the script with the individual scanner id (using the -s param) and verbose mode -v
 
 ## Where can I get help?
 Raise and issue in GitHub
 
 ## Can I contribute a fix or improvement?
-dmscan belongs to those who use it and want it improved and you can always contribute fixes or improvements using  pull requests.
+dmscan belongs to those who use it and want it improved. You encouraged and welcome to contribute fixes or improvements using  pull requests.
 
 (c) John Sotiropoulos 2021. This software is licenced under Apache License 2.0 and is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. The full license notice can be found in the LICENSE file. 

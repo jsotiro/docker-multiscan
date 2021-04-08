@@ -27,7 +27,7 @@ severity-mappings:
   MEDIUM: 3.MEDIUM
   HIGH: 4.HIGH
   CRITICAL: 5.CRITICAL
-  #DEFCON1: 5.CRITICAL
+  DEFCON1: 5.CRITICAL
 plugins:
   snyk:
     enabled:
@@ -68,7 +68,6 @@ plugins:
       - ./clair-scanner-run.sh
       - --report=clair.json
       - --clair=http://127.0.0.1:6060
-      - --ip=host.docker.internal 
     results_root:
       vulnerabilities
     mappings:
