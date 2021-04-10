@@ -37,7 +37,7 @@ if you don't want to use AWS or Snyk then skip their pre-reqs and once the dmsca
 
 ## Installing the scanners
 You can manually install the scanners or clone this repository from github and **use the ./install-scanners.sh to install them in one go**:
-Make the script executable and then run it 
+
 ```
  ./install-scanners.sh 
 ```
@@ -53,7 +53,7 @@ Once they are installed, you need to  logon to snyk.io and find your token (unde
 export SNYK_TOKEN=<your snyk token>
 ```
 ## Installing dmscan
-Install the python packages required by running from the command line and in the project's directory (eg docker-multiscan) run 
+Install the python packages required by running from the command line and in the project's directory (eg docker-multiscan)
 ```
 pip install -r requirements.txt  
 ```
@@ -91,7 +91,7 @@ chmod +x dmscan.py
 Because of the dependencies on other included shell scripts, you should only run dmscan under the project's directory.
 
 
-Running it with any parameters it will show the same as screen as if you run it with -h or --help parameter
+Running it with any parameters it will show the same  screen as if you run it with -h or --help parameter
 
 ![cli](images/cli-main-s.png)
 
@@ -122,7 +122,7 @@ dmscan maintains a sql lite database with a cache of all the cve records from NV
 ```
 ./dmscan.py -i <image name> -of
 ```
-Sometimes you'd want to run a quick scan for a subset of registered scanners. Instead of modifying the scanners.yml file, you pass the -s or --scanners command line parameter
+Sometimes you'd want to run a quick scan for a subset of registered scanners. Instead of modifying the scanners.yml file, you can pass the -s or --scanners command line parameter
 This is a comma delimited list of ids for  scanners to include. The numbers can be found when running ./dmscanner.py -l 
 
 For instance if you only wanted to run a scan for snyk, grype, and trivy you'd run
