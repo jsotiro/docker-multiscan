@@ -164,7 +164,7 @@ Save the repaired workbook.
 For issue #2, if you see 0 results from a scanner run the script with the individual scanner id (using the -s param) and verbose mode -v
 
 ## Where can I get help?
-Raise and issue in GitHub
+Raise an issue in GitHub
 
 ## Can I contribute a fix or improvement?
 dmscan belongs to those who use it and want it improved. You encouraged and welcome to contribute fixes or improvements using  pull requests.
