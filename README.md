@@ -3,7 +3,7 @@ A multi-scanner utility for docker images. drives Clair, Anchore, Trivy, Snyk, G
 
 *dmscan* run the scans for all register scanners and  then consolidates the results and generates an excel spreadsheet report to help you better understand the results. The spreadsheet contains:
 
-- **Summary tables and charts** by scanner and severity with scanning times, and unique vulnerabilities and CVEs. For non-CVE vulnerabilities, dmscan will do an internet look up to find the referenced CVEs which uses to consolidate results. If non-cve is found the original identifier (eg NWG-XYZ) is kept.
+- **Summary tables and charts** by scanner and severity with scanning times, and unique vulnerabilities and CVEs. For non-CVE vulnerabilities, dmscan will do an internet look up to find the referenced CVEs which uses to consolidate results. If no matching cve is found the original identifier (eg NWG-XYZ) is kept.
 
 ![summary dashboard](images/dashboard-s.png)
 
