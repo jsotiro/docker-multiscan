@@ -5,7 +5,7 @@ import sys
 import re
 import os
 from _datetime import datetime
-        
+
 import pandas as pd
 import yaml
 from pandas.api.types import is_numeric_dtype
@@ -302,6 +302,8 @@ def scan(args):
         os.makedirs('output')
 
     for plugin in selected_plugins:
+        if plugin not in active_plugins:
+            continue
         logging.info('scanning with {}'.format(plugin))
         scanner = ScannerPlugin(plugin, config['plugins'][plugin], columns, severity_mappings, verbose=verbose,
                                 offline=offline)
@@ -350,7 +352,9 @@ def scan(args):
             severity_map_df = aggregate_dataframe(
                 severity_map.groupby(['component']).severity_index.max(), 'cve')
             components_summary_by_severity[plugin] = severity_map_df
-
+    if not results:
+        logging.info('no scan results were produced with the current configuration. please check that the selected scanners are enabled')
+        sys.exit(0)
     cve_severities = merge_aggregates(severity_maps, 'total',
                                       merge_fields=['cve'], fill_na_value=0)
     components_heatmap = merge_aggregates(components_summary_by_severity, 'total',
@@ -401,12 +405,10 @@ def is_plugin_enabled(param):
 
 def filter_selected(selected):
     result = []
+    plugins_list = list(config['plugins'].keys())
     for i in selected:
-        idx = int(i)
-        if idx in active_plugins_idx:
-            result.append(active_plugins[idx - 1])
-        else:
-            logging.warning("invalid plugin number. it will be ignored".format(i))
+        idx = int(i)-1
+        result.append(plugins_list[idx])
     return result
 
 
@@ -445,7 +447,7 @@ if __name__ == "__main__":
     if args.image:
         if ":" not in args.image:
             args.image += ":latest"
-        selected_plugins = active_plugins
+        selected_plugins = []
         if args.scanners:
             selected = args.scanners.split(",")
             try:
