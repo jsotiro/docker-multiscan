@@ -33,7 +33,11 @@ if 'logging' in config:
     if 'level' in config['logging']:
         logging_level = levels[str(config['logging']['level']).lower()]
 log_format = '%(asctime)s.%(msecs)03d %(levelname)s] %(message)s'
+
 logging.basicConfig(format=log_format, datefmt='%Y-%m-%d,%H:%M:%S', level=logging_level)
+#logging.basicConfig(format=log_format,filename="dmscan.log",  datefmt='%Y-%m-%d,%H:%M:%S', level=logging_level)
+
+
 
 not_found_string = '-'
 columns = config['columns']
