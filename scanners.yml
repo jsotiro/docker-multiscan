@@ -44,6 +44,8 @@ plugins:
     unpack_json:
       - references
   aws-ecr:
+    enabled:
+      False
     output_file:
       "\"ecr.json\""
     command_line:

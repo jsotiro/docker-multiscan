@@ -215,6 +215,8 @@ def save_to_excel(image_name, totals, normalised, original):
     severities_format = []
     all_data = pd.DataFrame()
     for plugin in selected_plugins:
+        if plugin not in active_plugins:
+            continue
         all_data = all_data.append(normalised[plugin])
 
     with pd.ExcelWriter('output/{}-{}.xlsx'.format(name, created), engine='xlsxwriter') as writer:
@@ -338,7 +340,7 @@ def scan(args):
 
             #            severity_map_df = aggregate_dataframe(
             #               severity_map.groupby(['cve']).severity_index.max().map(severity_reverse_idx), 'cve')
-
+            logging.info("creating the severity map")
             severity_map_df = aggregate_dataframe(
                 severity_map.groupby(['cve']).severity_index.max(), 'cve')
 
@@ -348,7 +350,7 @@ def scan(args):
             #    results[plugin].groupby(['cve', 'severity']).cve.count(), 'cve')
             # components_summary_by_severity[plugin] = aggregate_dataframe(
             #    results[plugin].groupby(['component', 'severity']).component.count(), 'component')
-
+            logging.info("creating the severity map for components")
             severity_map_df = aggregate_dataframe(
                 severity_map.groupby(['component']).severity_index.max(), 'cve')
             components_summary_by_severity[plugin] = severity_map_df
@@ -357,21 +359,24 @@ def scan(args):
         sys.exit(0)
     cve_severities = merge_aggregates(severity_maps, 'total',
                                       merge_fields=['cve'], fill_na_value=0)
+    logging.info("merging component's heatmap")
     components_heatmap = merge_aggregates(components_summary_by_severity, 'total',
                                           merge_fields=['component'], fill_na_value=0)
 
+    logging.info("merging severity map")
     cves = merge_aggregates(cve_summary, 'total',
                             merge_fields=['cve', 'cssv_v2_severity', 'cssv_v3_severity'])
-
+    logging.info("merging severity map for components")
     components = merge_aggregates(components_summary, 'total',
                                   merge_fields=['component', 'cssv_v2_severity', 'cssv_v3_severity'])
     # cve_totals_by_severity = merge_aggregates(cve_summary_by_severity, 'total', merge_fields=['cve', 'severity'])
-
+    logging.info("generating totals")
     all['totals'] = totals_df
     all['vulnerability heatmap'] = format_severities_map(cve_severities)
     all['component heatmap'] = format_severities_map(components_heatmap)
     all['components'] = components
     all['vulnerabities'] = cves
+    logging.info("saving to excel")
     save_to_excel(image, all, results, originals)
 
 
@@ -447,7 +452,7 @@ if __name__ == "__main__":
     if args.image:
         if ":" not in args.image:
             args.image += ":latest"
-        selected_plugins = []
+        selected_plugins = list(config['plugins'].keys())
         if args.scanners:
             selected = args.scanners.split(",")
             try:

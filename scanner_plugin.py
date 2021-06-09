@@ -225,8 +225,10 @@ class ScannerPlugin:
 
     def preprocess_dataframe(self, json_results):
         try:
+            logging.info('normalising data')
             results = pd.json_normalize(json_results, record_path=self.resultsRoot)
         except KeyError as e:
+            logging.info('normalising data failed with {} because of array, going up to 1st array element '.format(self.resultsRoot))
             json_subtree = json_results[0][self.resultsRoot]
             results = pd.json_normalize(json_subtree)
         original = results.copy()
@@ -244,6 +246,10 @@ class ScannerPlugin:
             self.output_file = self.eval_expression(self.output_file, image_author, image_name, image_tag)
         json_results = self.scan_image(cmd)
         if not "error" in json_results:
+            logging.info('pre-processing json data')
             self.pre_process_json(json_results)
             results, original = self.preprocess_dataframe(json_results)
+            logging.info('data preprocessed and transformed ')
+            logging.info('results data {} '.format(results.shape))
+            logging.info('original data {} '.format(original.shape))
         return results, original
