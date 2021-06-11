@@ -32,7 +32,6 @@ class ScannerPlugin:
         self.columns = columns
         self.cve_cache = NvdCache()
         self.timeout_in_secs = 60
-        self.timeout_in_secs = 60
         self.started = None
         self.finished = None
         self.failed = False
