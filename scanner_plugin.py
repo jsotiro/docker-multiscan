@@ -49,10 +49,12 @@ class ScannerPlugin:
         stdout, stderr = scanner.communicate()
         stdout = stdout.decode('utf-8')
         stderr = stderr.decode('utf-8')
+        logging.info("scanner command was executed: {}".format(command_line_params))
         if self.verbose:
             logging.info(stdout)
             logging.error(stderr)
         if self.output_file:
+            logging.info("looking for output file: {}".format(self.output_file))
             start = datetime.datetime.now()
             elapsed_secs = 0
             while not os.path.isfile(self.output_file) and elapsed_secs <= self.timeout_in_secs:
@@ -60,11 +62,16 @@ class ScannerPlugin:
                 elapsed_secs = (now - start).total_seconds()
             self.failed = elapsed_secs > self.timeout_in_secs
             if not self.failed:
+                logging.info("file {} found. opening file".format(self.output_file))
                 json_file = open(self.output_file, )
+                logging.info("reading json from file")
                 json_result = json.load(json_file)
+                logging.info("cleaning up file")
                 os.remove(self.output_file)
+                logging.info("cleaning up completed")
             else:
                 json_result = {"error": "waiting for results file timed-out"}
+                logging.error(json_result)
         else:
             if stderr != "":
                 json_result = {"error": stderr}
@@ -245,6 +252,7 @@ class ScannerPlugin:
         if self.output_file:
             self.output_file = self.eval_expression(self.output_file, image_author, image_name, image_tag)
         json_results = self.scan_image(cmd)
+        logging.info('scan completed')
         if not "error" in json_results:
             logging.info('pre-processing json data')
             self.pre_process_json(json_results)
