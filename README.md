@@ -39,8 +39,9 @@ if you don't want to use AWS or Snyk then skip their pre-reqs and once the dmsca
 You can manually install the scanners or clone this repository from github and **use the ./install-scanners.sh to install them in one go**:
 
 ```
- ./install-scanners.sh 
+ sudo ./install-scanners.sh 
 ```
+(you sould run it as sudo otherwise some installs - snyk for instance - will fail)
 
 The script should already have execution permissions. If not, or you receive an permission denied error, give it execution permissions with
 ```
